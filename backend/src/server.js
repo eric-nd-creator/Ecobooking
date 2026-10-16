@@ -4,7 +4,7 @@ const cors = require('cors');
 
 // Fail fast and loud on missing critical config instead of silently falling back
 // to an insecure default (e.g. cors reflecting any origin when FRONTEND_URL is unset).
-const REQUIRED_ENV = ['JWT_SECRET', 'FRONTEND_URL', 'DB_PASSWORD'];
+const REQUIRED_ENV = ['JWT_SECRET', 'DB_PASSWORD'];
 const missing = REQUIRED_ENV.filter(key => !process.env[key]);
 if (missing.length) {
   console.error(`Missing required environment variable(s): ${missing.join(', ')}. Check backend/.env.`);
@@ -15,9 +15,12 @@ if (missing.length) {
 // siblings — Vite falls back to the next free port (5174, 5175, ...) whenever
 // 5173 is already taken, and a mismatched origin otherwise fails as an opaque,
 // hard-to-diagnose CORS block that looks identical to the server being down.
-const FRONTEND_ORIGINS = new Set([process.env.FRONTEND_URL]);
+// Render provides the service's public URL at runtime. When FRONTEND_URL is
+// not set, this also allows the same-origin production frontend.
+const configuredFrontendUrl = process.env.FRONTEND_URL || process.env.RENDER_EXTERNAL_URL;
+const FRONTEND_ORIGINS = new Set(configuredFrontendUrl ? [configuredFrontendUrl] : []);
 try {
-  const configured = new URL(process.env.FRONTEND_URL);
+  const configured = new URL(configuredFrontendUrl);
   if (configured.hostname === 'localhost' || configured.hostname === '127.0.0.1') {
     for (const host of ['localhost', '127.0.0.1']) {
       for (let port = 5173; port <= 5180; port++) {
@@ -28,6 +31,7 @@ try {
 } catch { /* FRONTEND_URL isn't a plain host:port URL — only the exact configured value is allowed */ }
 
 const app = express();
+app.get('/healthz', (req, res) => res.status(200).send('ok'));
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || FRONTEND_ORIGINS.has(origin)) return callback(null, true);
@@ -48,6 +52,16 @@ app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/predictions', require('./routes/predictions'));
 app.use('/api/stocks', require('./routes/stocks'));
 
+// Serve the built Vite app from this service in production. This keeps the
+// browser and API on one origin, while Vite continues serving the app locally.
+const frontendDist = require('path').resolve(__dirname, '../../dist');
+app.use('/api', (req, res) => res.status(404).json({ message: 'Not found' }));
+app.use(require('express').static(frontendDist));
+app.get('*', (req, res, next) => {
+  res.sendFile(require('path').join(frontendDist, 'index.html'), (err) => {
+    if (err) next();
+  });
+});
 app.use((req, res) => res.status(404).json({ message: 'Not found' }));
 
 // Every route handler is wrapped in asyncHandler, so genuine async errors land

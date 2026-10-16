@@ -58,6 +58,7 @@ tennis-system/
 - [`docs/DATABASE.md`](docs/DATABASE.md) — full schema: tables, columns, enums, relationships, migration history.
 - [`docs/API.md`](docs/API.md) — every backend endpoint, grouped by resource, with auth requirements and behavior.
 - [`docs/FRONTEND.md`](docs/FRONTEND.md) — every route, which role can access it, and the shared component/context layer.
+- [`RENDER.md`](RENDER.md) — deploy the app from GitHub to Render.
 
 ## Prerequisites
 
@@ -66,36 +67,25 @@ tennis-system/
 
 ## Setup
 
-1. **Install dependencies** (run in both folders):
+1. **Install dependencies** from the repository root:
    ```
-   cd backend && npm install
-   cd ../frontend && npm install
+   npm ci
+   npm ci --prefix backend
    ```
 
-2. **Create the database** in PostgreSQL, then apply the schema. There is no single schema file — the live schema is built up from the migration files in `backend/migrations/`, applied in numeric order:
-   ```
-   001_guest_bookings.sql
-   002_partner_notifications.sql
-   003_predictions.sql
-   ```
-   (Run each against your new database, e.g. via `psql -f backend/migrations/001_guest_bookings.sql`, or through pgAdmin's query tool.) A base schema — `users`, `courts`, `bookings`, `memberships`, `payments`, `ball_boy_assignments` and their enum types — must exist before the migrations are applied; see `docs/DATABASE.md` for the full table definitions to recreate it if starting from scratch.
+2. **Create a PostgreSQL database** and configure `backend/.env` with its connection settings. Running `npm start --prefix backend` creates the base schema from `database/schema.sql` and applies numbered migrations automatically. For local development, the Vite server proxies `/api` calls to `http://localhost:5000`.
 
-3. **Configure environment variables** — copy `backend/.env` (see [Environment variables](#environment-variables) below) and fill in your local database credentials at minimum.
+3. **Configure environment variables** — `JWT_SECRET` and `DB_PASSWORD` are required. `FRONTEND_URL` can be set to your frontend origin when hosting the frontend separately; the Render Blueprint serves the frontend and API on one origin.
 
 ## Running
 
-**Development (two terminals):**
+**Development (two terminals from the repository root):**
 ```
-cd backend && npm run dev     # http://localhost:5000
-cd frontend && npm run dev    # http://localhost:5173
+npm run dev                    # http://localhost:5173
+npm run dev --prefix backend  # http://localhost:5000
 ```
 
-**Via PM2 (recommended — auto-restarts on crash):**
-```
-pm2 start ecosystem.config.js
-pm2 save
-```
-`ecosystem.config.js` runs the backend directly (`node src/server.js`) and the frontend via Vite's dev server (`node_modules/vite/bin/vite.js`) — this is a development setup, not a production build. For a real production deployment, run `npm run build` in `frontend/` and serve the resulting static files instead.
+For an online deployment, follow [`RENDER.md`](RENDER.md).
 
 ## Environment variables
 
@@ -110,8 +100,8 @@ Set in `backend/.env`:
 | `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM` | SMTP config; if `EMAIL_HOST` is blank, emails go to an auto-created Ethereal test inbox (link printed to console) instead of being sent for real |
 | `AT_USERNAME`, `AT_API_KEY`, `AT_PRODUCT_NAME` | Africa's Talking mobile money + SMS; if `AT_API_KEY` is unset/placeholder, payments and SMS run in "demo mode" (instant success, logged to console) instead of hitting the real API |
 
-The frontend has no `.env` — its API base URL is hardcoded to `http://localhost:5000/api` in `frontend/src/api/axios.js`.
+The frontend uses `/api` by default, which works for Render's single-origin deployment. To point it at a separate API host, set `VITE_API_URL` during the frontend build.
 
-## Default accounts
+## First administrator login
 
-An admin account is seeded via the migration/backup: `ericnd8@gmail.com`. All other seeded demo accounts (coaches, ball boys, members) use the password `1234er`.
+On a fresh database, `database/schema.sql` seeds `ericnd8@gmail.com` with the initial password `123456e`. Change it after the first login.

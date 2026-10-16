@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: ecobooking
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm ci --prefix backend && npm run build
+    startCommand: npm start --prefix backend
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DB_HOST
+        fromDatabase:
+          name: ecobooking-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ecobooking-db
+          property: port
+      - key: DB_USER
+        fromDatabase:
+          name: ecobooking-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ecobooking-db
+          property: password
+      - key: DB_NAME
+        fromDatabase:
+          name: ecobooking-db
+          property: database
+      - key: DB_SSL
+        value: "true"
+      - key: CRON_TIMEZONE
+        value: Africa/Kigali
+
+databases:
+  - name: ecobooking-db
+    databaseName: tennis_system
+    user: tennis_user
+    plan: free
