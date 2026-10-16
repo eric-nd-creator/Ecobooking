@@ -1,34 +1,21 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
+node_modules/
+dist/
 .env
 .env.*
 !.env.example
+backend/backups/
+*.log
 
-node_modules
-dist
-dist-ssr
-*.local
+# Local agent configuration
+.claude/
+# Database snapshots
+backend/backups/
+# Local runtime logs
+*.log
 
-# Local installers and archives
+# Local downloads and unrelated documents
 /Git-*.exe
 /ecologytennis-main.zip
 /19.07.2026.eric_final_P.docx
 /Gemini_Generated_Image_rnyagkrnyagkrnya.jfif
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
