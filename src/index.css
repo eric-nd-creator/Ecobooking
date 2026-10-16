@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #f4f6f9;
+}
+
+.dark body {
+    background: #0f172a;
+}
+
+#root {
+    width: 100%;
+    min-height: 100vh;
+}
+
+@layer components {
+    .btn-primary {
+        @apply bg-brand-700 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-brand-800 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed;
+    }
+
+    .btn-accent {
+        @apply bg-accent-500 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-accent-600 transition-all duration-200;
+    }
+
+    .btn-outline {
+        @apply border-2 border-brand-700 text-brand-700 px-6 py-2 rounded-lg font-semibold hover:bg-brand-700 hover:text-white transition-all duration-200 dark:border-brand-300 dark:text-brand-300 dark:hover:bg-brand-300 dark:hover:text-gray-900;
+    }
+
+    .card {
+        @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6 dark:bg-gray-800 dark:border-gray-700;
+    }
+
+    .input {
+        @apply w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-700 transition-all dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100 dark:focus:ring-brand-800;
+    }
+
+    .sidebar-link {
+        @apply flex items-center gap-3 px-4 py-3 rounded-xl text-white/80 hover:bg-white/15 hover:text-white font-medium transition-all cursor-pointer;
+    }
+
+    .sidebar-link.active {
+        @apply bg-white/25 text-white hover:bg-white/30;
+    }
+}
