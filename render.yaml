@@ -3,7 +3,7 @@ services:
     name: ecobooking
     runtime: node
     plan: free
-    buildCommand: npm ci && npm ci --prefix backend && npm run build
+    buildCommand: npm ci --include=dev && npm ci --prefix backend && npm run build
     startCommand: npm start --prefix backend
     healthCheckPath: /healthz
     envVars:
