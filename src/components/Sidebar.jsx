@@ -2,8 +2,9 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Home, Trophy, CreditCard, BarChart3, User, ClipboardList,
-  CalendarDays, Users, TrendingUp, CalendarClock, LogOut, Globe,
+  CalendarDays, Users, TrendingUp, CalendarClock, LogOut, Globe, Menu, X,
 } from 'lucide-react';
+import { useState } from 'react';
 
 // Informational, not tennis-specific — hidden from the admin dashboard nav,
 // still shown for other roles.
@@ -46,12 +47,13 @@ const LINKS = {
 const Sidebar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
   if (!user) return null;
 
   const links = LINKS[user.role] || [];
 
-  return (
-    <aside className="w-64 min-h-screen flex flex-col flex-shrink-0 shadow-xl bg-brand-800 dark:bg-gray-900">
+  const navigation = (
+    <>
       {/* User header */}
       <div className="p-6 text-white bg-black/15">
         <div className="w-14 h-14 rounded-full bg-white/25 flex items-center justify-center text-2xl font-bold mb-3 border-2 border-white/50">
@@ -85,7 +87,40 @@ const Sidebar = () => {
           <span>Logout</span>
         </button>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      <div className="lg:hidden px-3 py-2 bg-brand-800 dark:bg-gray-900">
+        <button
+          type="button"
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-expanded={menuOpen}
+          aria-controls="dashboard-navigation"
+          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
+        >
+          {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          {menuOpen ? 'Close menu' : 'Dashboard menu'}
+        </button>
+      </div>
+
+      {menuOpen && (
+        <button
+          type="button"
+          aria-label="Close dashboard menu"
+          onClick={() => setMenuOpen(false)}
+          className="fixed inset-0 top-16 z-40 bg-black/50 lg:hidden"
+        />
+      )}
+
+      <aside
+        id="dashboard-navigation"
+        className={`${menuOpen ? 'flex' : 'hidden'} fixed inset-y-16 left-0 z-50 w-[min(18rem,85vw)] flex-col overflow-y-auto shadow-xl bg-brand-800 dark:bg-gray-900 lg:static lg:z-auto lg:flex lg:w-64 lg:shrink-0 lg:shadow-xl`}
+      >
+        {navigation}
+      </aside>
+    </>
   );
 };
 

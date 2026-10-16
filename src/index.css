@@ -11,6 +11,9 @@
 body {
     font-family: 'Inter', sans-serif;
     background: #f4f6f9;
+    min-width: 320px;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 .dark body {
