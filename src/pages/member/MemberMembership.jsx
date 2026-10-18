@@ -143,7 +143,7 @@ const MemberMembership = () => {
               </div>
               <div className="bg-green-400/30 text-green-200 text-xs font-bold px-4 py-1.5 rounded-full">ACTIVE</div>
             </div>
-            <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
               <div>
                 <p className="text-blue-300 text-xs">Member</p>
                 <p className="font-semibold">{user.name}</p>

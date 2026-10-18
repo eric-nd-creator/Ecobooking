@@ -2,9 +2,8 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Home, Trophy, CreditCard, BarChart3, User, ClipboardList,
-  CalendarDays, Users, TrendingUp, CalendarClock, LogOut, Globe, Menu, X,
+  CalendarDays, Users, TrendingUp, CalendarClock, LogOut, Globe,
 } from 'lucide-react';
-import { useState } from 'react';
 
 // Informational, not tennis-specific — hidden from the admin dashboard nav,
 // still shown for other roles.
@@ -44,10 +43,9 @@ const LINKS = {
   ],
 };
 
-const Sidebar = () => {
+const Sidebar = ({ menuOpen, onClose }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
   if (!user) return null;
 
   const links = LINKS[user.role] || [];
@@ -68,7 +66,7 @@ const Sidebar = () => {
       {/* Nav links */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {links.map(({ to, label, Icon }) => (
-          <NavLink key={to} to={to} end={to.split('/').length <= 2}
+          <NavLink key={to} to={to} end={to.split('/').length <= 2} onClick={onClose}
             className={({ isActive }) =>
               `sidebar-link${isActive ? ' active' : ''}`
             }>
@@ -81,7 +79,7 @@ const Sidebar = () => {
       {/* Logout */}
       <div className="p-4 border-t border-white/20">
         <button
-          onClick={() => { logout(); navigate('/'); }}
+          onClick={() => { onClose(); logout(); navigate('/'); }}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white font-medium transition-all">
           <LogOut className="w-5 h-5" strokeWidth={1.75} />
           <span>Logout</span>
@@ -92,31 +90,10 @@ const Sidebar = () => {
 
   return (
     <>
-      <div className="lg:hidden px-3 py-2 bg-brand-800 dark:bg-gray-900">
-        <button
-          type="button"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-expanded={menuOpen}
-          aria-controls="dashboard-navigation"
-          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white hover:bg-white/10"
-        >
-          {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          {menuOpen ? 'Close menu' : 'Dashboard menu'}
-        </button>
-      </div>
-
-      {menuOpen && (
-        <button
-          type="button"
-          aria-label="Close dashboard menu"
-          onClick={() => setMenuOpen(false)}
-          className="fixed inset-0 top-16 z-40 bg-black/50 lg:hidden"
-        />
-      )}
-
+      {menuOpen && <button type="button" aria-label="Close dashboard menu" onClick={onClose} className="fixed inset-0 top-16 z-40 bg-black/35 lg:hidden" />}
       <aside
         id="dashboard-navigation"
-        className={`${menuOpen ? 'flex' : 'hidden'} fixed inset-y-16 left-0 z-50 w-[min(18rem,85vw)] flex-col overflow-y-auto shadow-xl bg-brand-800 dark:bg-gray-900 lg:static lg:z-auto lg:flex lg:w-64 lg:shrink-0 lg:shadow-xl`}
+        className={`${menuOpen ? 'flex' : 'hidden'} fixed inset-y-16 left-0 z-50 w-[min(18rem,85vw)] flex-col overflow-y-auto shadow-xl bg-brand-800 lg:static lg:z-auto lg:flex lg:w-64 lg:shrink-0 lg:shadow-xl dark:bg-gray-900`}
       >
         {navigation}
       </aside>

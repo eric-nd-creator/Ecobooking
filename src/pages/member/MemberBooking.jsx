@@ -126,7 +126,7 @@ const MemberBooking = () => {
         <h1 className="text-2xl font-bold text-gray-800">Book a Court</h1>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             { label: 'Total Bookings', value: bookings.length, color: 'border-blue-400' },
             { label: 'Confirmed', value: confirmed, color: 'border-green-400' },

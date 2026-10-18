@@ -3,11 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useState, useEffect, useRef } from 'react';
 import api from '../api/axios';
-import { Bell, Menu, X, Sun, Moon, Trophy } from 'lucide-react';
+import { Bell, Menu, X, Sun, Moon, Trophy, LogOut } from 'lucide-react';
 
 const POLL_INTERVAL = 15000; // 15 seconds
 
-const NotificationBell = () => {
+const NotificationBell = ({ light = false }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -46,10 +46,10 @@ const NotificationBell = () => {
   return (
     <div className="relative" ref={boxRef}>
       <button onClick={() => setOpen(!open)} aria-label="Notifications" aria-expanded={open}
-        className="relative p-2 text-gray-600 hover:text-brand-700 dark:text-gray-300 dark:hover:text-brand-300">
+        className={`relative p-2 ${light ? 'text-white hover:text-white' : 'text-gray-600 hover:text-brand-700 dark:text-gray-300 dark:hover:text-brand-300'}`}>
         <Bell className="w-5 h-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-pulse ring-2 ring-white dark:ring-gray-800">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -77,7 +77,7 @@ const NotificationBell = () => {
   );
 };
 
-const Navbar = () => {
+const Navbar = ({ dashboard = false, dashboardMenuOpen, onDashboardMenuToggle }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -86,19 +86,30 @@ const Navbar = () => {
   const handleLogout = () => { logout(); navigate('/'); };
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50">
+    <nav className={`${dashboard ? 'bg-accent-500 lg:bg-white dark:lg:bg-gray-800' : 'bg-white dark:bg-gray-800'} shadow-md sticky top-0 z-50`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          {dashboard ? (
+            <>
+              <button type="button" onClick={onDashboardMenuToggle} aria-label={dashboardMenuOpen ? 'Close dashboard menu' : 'Open dashboard menu'} aria-expanded={dashboardMenuOpen} aria-controls="dashboard-navigation"
+                className="lg:hidden p-2 -ml-2 text-white rounded-lg hover:bg-black/10">
+                {dashboardMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+              <Link to="/" className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-brand-700 rounded-full flex items-center justify-center"><Trophy className="w-5 h-5 text-white" /></div>
+                <span className="hidden sm:inline font-bold text-white lg:text-brand-700 dark:lg:text-brand-300 text-lg">TennisCourt</span>
+              </Link>
+            </>
+          ) : <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 bg-brand-700 rounded-full flex items-center justify-center">
               <Trophy className="w-5 h-5 text-white" />
             </div>
             <span className="font-bold text-brand-700 dark:text-brand-300 text-lg hidden sm:block">TennisCourt</span>
-          </Link>
+          </Link>}
 
           {/* Center nav links */}
-          <div className="hidden md:flex items-center gap-1">
+          {!dashboard && <div className="hidden md:flex items-center gap-1">
             {['/', '/about', '/booking', '/membership'].map((path, i) => (
               <NavLink
                 key={path}
@@ -113,19 +124,20 @@ const Navbar = () => {
                 {['Home', 'About Us', 'Booking', 'Membership'][i]}
               </NavLink>
             ))}
-          </div>
+          </div>}
 
           {/* Right: theme toggle / login / user */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className={`items-center gap-1 sm:gap-3 ${dashboard ? 'flex' : 'hidden md:flex'}`}>
             <button onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               className="p-2 text-gray-500 hover:text-brand-700 dark:text-gray-300 dark:hover:text-accent-400 transition-colors">
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             {user ? (
               <>
-                <NotificationBell />
-                <button onClick={handleLogout} className="btn-outline text-sm py-2 px-4">
-                  Logout
+                <NotificationBell light={dashboard} />
+                <button onClick={handleLogout} aria-label="Logout" className="btn-outline text-sm py-2 px-4">
+                  <span className={dashboard ? 'hidden sm:inline' : ''}>Logout</span>
+                  {dashboard && <LogOut className="w-4 h-4 sm:hidden" />}
                 </button>
               </>
             ) : (
@@ -134,7 +146,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile menu toggle */}
-          <div className="flex items-center gap-1 md:hidden">
+          {!dashboard && <div className="flex items-center gap-1 md:hidden">
             <button onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               className="p-2 text-gray-500 dark:text-gray-300">
               {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -142,11 +154,11 @@ const Navbar = () => {
             <button className="p-2" onClick={() => setMenuOpen(!menuOpen)} aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen}>
               {menuOpen ? <X className="w-6 h-6 text-gray-700 dark:text-gray-200" /> : <Menu className="w-6 h-6 text-gray-700 dark:text-gray-200" />}
             </button>
-          </div>
+          </div>}
         </div>
 
         {/* Mobile menu */}
-        {menuOpen && (
+        {!dashboard && menuOpen && (
           <div className="md:hidden pb-4 space-y-1 animate-fade-in">
             {[['/', 'Home'], ['/about', 'About Us'], ['/booking', 'Booking'], ['/membership', 'Membership']].map(([path, label]) => (
               <NavLink key={path} to={path} onClick={() => setMenuOpen(false)}

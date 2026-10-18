@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { Trophy, CalendarDays, CreditCard, HourglassIcon, AlertTriangle, CheckCircle2 } from 'lucide-react';
 
 const StatCard = ({ Icon, label, value, color }) => (
-  <div className={`card flex items-center gap-4 border-l-4 ${color}`}>
+  <div className={`card dashboard-card flex items-center gap-4 border-l-4 ${color}`}>
     <Icon className="w-8 h-8 text-gray-700 dark:text-gray-200" strokeWidth={1.5} />
     <div>
       <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
@@ -39,10 +39,10 @@ const MemberDashboard = () => {
   const upcomingBookings = bookings.filter(b => new Date(b.date) >= new Date() && b.status === 'confirmed');
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <DashboardLayout contentClassName="member-dashboard-content">
+      <div className="member-dashboard space-y-6 sm:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">Welcome back, {user.name.split(' ')[0]}!</h1>
             <p className="text-gray-500 text-sm mt-1">Here's your tennis activity overview</p>
@@ -52,7 +52,7 @@ const MemberDashboard = () => {
 
         {/* Membership alert */}
         {!membership || membership.status !== 'active' ? (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 flex items-center justify-between">
+          <div className="dashboard-card bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <AlertTriangle className="w-6 h-6 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
               <div>
@@ -63,7 +63,7 @@ const MemberDashboard = () => {
             <Link to="/member/membership" className="btn-accent text-sm py-2 px-4">Subscribe</Link>
           </div>
         ) : (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-4 flex items-center justify-between">
+          <div className="dashboard-card bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400 flex-shrink-0" />
               <div>
@@ -76,7 +76,7 @@ const MemberDashboard = () => {
         )}
 
         {/* Stats */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-6">
           <StatCard Icon={Trophy} label="Total Bookings" value={bookings.length} color="border-blue-500"/>
           <StatCard Icon={CalendarDays} label="Upcoming" value={upcomingBookings.length} color="border-green-500"/>
           <StatCard Icon={CreditCard} label="Membership" value={membership?.status === 'active' ? 'Active' : 'None'} color="border-yellow-500"/>
@@ -85,8 +85,8 @@ const MemberDashboard = () => {
 
         {/* Membership card */}
         {membership && (
-          <div className="bg-gradient-to-r from-brand-700 to-brand-500 rounded-2xl p-6 text-white">
-            <div className="flex items-center justify-between">
+          <div className="dashboard-card bg-gradient-to-r from-brand-700 to-brand-500 rounded-2xl p-6 lg:p-8 text-white">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="text-blue-200 text-sm uppercase font-medium tracking-wide">Membership Card</p>
                 <h2 className="text-2xl font-bold mt-1">{user.name}</h2>
@@ -99,7 +99,7 @@ const MemberDashboard = () => {
                 </div>
               </div>
             </div>
-            <div className="mt-4 flex gap-8 text-sm">
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 text-sm">
               <div>
                 <p className="text-blue-300">Valid From</p>
                 <p className="font-semibold">{new Date(membership.start_date).toLocaleDateString()}</p>
@@ -117,7 +117,7 @@ const MemberDashboard = () => {
         )}
 
         {/* Recent bookings */}
-        <div className="card">
+        <div className="card dashboard-card">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">Recent Bookings</h2>
             <Link to="/member/book" className="text-sm text-brand-700 font-medium hover:underline">New Booking →</Link>

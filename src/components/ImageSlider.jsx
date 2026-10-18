@@ -32,7 +32,7 @@ const ImageSlider = () => {
   const slide = SLIDES[idx];
 
   return (
-    <div className={`relative w-full h-[480px] md:h-[560px] bg-gradient-to-br ${slide.bg} transition-all duration-1000 overflow-hidden`}>
+    <div className={`relative w-full min-h-[400px] h-[min(72vh,560px)] bg-gradient-to-br ${slide.bg} transition-all duration-1000 overflow-hidden`}>
       {/* Tennis court SVG background pattern */}
       <div className="absolute inset-0 opacity-10">
         <svg className="w-full h-full" viewBox="0 0 800 560" fill="none">
@@ -53,9 +53,9 @@ const ImageSlider = () => {
         <span className="bg-white/20 backdrop-blur-sm text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
           {slide.badge}
         </span>
-        <h1 className="text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{slide.title}</h1>
+        <h1 className="max-w-4xl text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{slide.title}</h1>
         <p className="text-xl md:text-2xl text-white/90 max-w-2xl mb-8">{slide.subtitle}</p>
-        <div className="flex gap-4">
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
           <a href="/booking" className="bg-white text-brand-700 font-semibold px-8 py-3 rounded-xl hover:bg-gray-100 transition-all shadow-lg">
             Book Now
           </a>
