@@ -4,14 +4,14 @@ const {
   register, login, verifyLogin2FA, getMe, updateProfile, changePassword,
   forgotPassword, resetPassword, setup2FA, verifySetup2FA, disable2FA,
 } = require('../controllers/authController');
-const { auth, loginLimiter } = require('../middleware/auth');
+const { auth, loginLimiter, passwordResetLimiter } = require('../middleware/auth');
 const asyncHandler = require('../utils/asyncHandler');
 
 router.post('/register', loginLimiter, asyncHandler(register));
 router.post('/login', loginLimiter, asyncHandler(login));
 router.post('/2fa/verify-login', loginLimiter, asyncHandler(verifyLogin2FA));
-router.post('/forgot-password', loginLimiter, asyncHandler(forgotPassword));
-router.post('/reset-password', loginLimiter, asyncHandler(resetPassword));
+router.post('/forgot-password', passwordResetLimiter, asyncHandler(forgotPassword));
+router.post('/reset-password', passwordResetLimiter, asyncHandler(resetPassword));
 
 router.get('/me', auth, asyncHandler(getMe));
 router.put('/profile', auth, asyncHandler(updateProfile));

@@ -5,6 +5,7 @@ const qrcode = require('qrcode');
 const pool = require('../config/db');
 const emailService = require('../services/emailService');
 const totp = require('../utils/totp');
+const { createResetToken, isValidEmail, getPasswordError } = require('../utils/passwordReset');
 
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const TWOFA_CHALLENGE_TTL = '5m';
@@ -144,52 +145,85 @@ const changePassword = async (req, res) => {
 
 // ── Forgot / reset password ──────────────────────────────────────────────────
 const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  if (!email) return res.status(400).json({ message: 'Email is required' });
+  const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  if (!isValidEmail(email)) return res.status(400).json({ message: 'Enter a valid email address' });
 
-  const [rows] = await pool.query('SELECT id, name, email FROM users WHERE email=?', [email]);
+  // Configuration errors are handled before looking up the user so every
+  // address receives the same response when reset email cannot be delivered.
+  const unavailable = emailService.passwordResetUnavailableReason();
+  if (unavailable) {
+    console.error('Password reset email is unavailable:', unavailable);
+    return res.status(503).json({ message: 'Password reset is temporarily unavailable. Please try again later.' });
+  }
+
+  const [rows] = await pool.query('SELECT id, name, email FROM users WHERE LOWER(email)=?', [email]);
   // Always return the same response whether or not the account exists, so callers
   // can't use this endpoint to enumerate registered emails.
   if (rows.length) {
     const user = rows[0];
-    const rawToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const { token, tokenHash } = createResetToken();
     const expires = new Date(Date.now() + RESET_TOKEN_TTL_MS);
 
-    await pool.query('UPDATE users SET reset_token_hash=?, reset_token_expires=? WHERE id=?', [tokenHash, expires, user.id]);
+    await pool.transaction(async query => {
+      // A new request invalidates earlier links for this account.
+      await query('DELETE FROM password_reset_tokens WHERE user_id=?', [user.id]);
+      await query(
+        'INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES (?,?,?) RETURNING id',
+        [user.id, tokenHash, expires]
+      );
+    });
 
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}&id=${user.id}`;
-    emailService.passwordReset({ to: user.email, name: user.name, resetUrl })
-      .catch(err => console.error('Password reset email failed:', err.message));
+    const resetUrl = new URL('/reset-password', process.env.FRONTEND_URL);
+    resetUrl.searchParams.set('token', token);
+    try {
+      await emailService.passwordReset({ to: user.email, name: user.name, resetUrl: resetUrl.toString() });
+    } catch (err) {
+      // A failed delivery must never leave a usable token in the database.
+      await pool.query('DELETE FROM password_reset_tokens WHERE token_hash=?', [tokenHash]);
+      console.error('Password reset email delivery failed:', { code: err.code, responseCode: err.responseCode });
+      return res.status(503).json({ message: 'Password reset is temporarily unavailable. Please try again later.' });
+    }
   }
 
-  res.json({ message: 'If that email is registered, a reset link has been sent.' });
+  res.json({ message: 'If an account with that email exists, you will receive a password reset link shortly.' });
 };
 
 const resetPassword = async (req, res) => {
-  const { id, token, new_password } = req.body;
-  if (!id || !token || !new_password)
+  const { token, new_password } = req.body;
+  if (typeof token !== 'string' || !token || typeof new_password !== 'string' || !new_password)
     return res.status(400).json({ message: 'Missing required fields' });
-  if (new_password.length < 6)
-    return res.status(400).json({ message: 'Password must be at least 6 characters' });
+  const passwordError = getPasswordError(new_password);
+  if (passwordError) return res.status(400).json({ message: passwordError });
 
-  const [rows] = await pool.query('SELECT * FROM users WHERE id=?', [id]);
-  const user = rows[0];
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-  if (!user || !user.reset_token_hash || user.reset_token_hash !== tokenHash ||
-      !user.reset_token_expires || new Date(user.reset_token_expires) < new Date()) {
-    return res.status(400).json({ message: 'This reset link is invalid or has expired' });
-  }
-
   const hash = await bcrypt.hash(new_password, 10);
-  await pool.query(
-    `UPDATE users SET password=?, token_version=token_version+1,
-     reset_token_hash=NULL, reset_token_expires=NULL, must_change_password=false WHERE id=?`,
-    [hash, id]
-  );
+  const user = await pool.transaction(async query => {
+    const [tokens] = await query(
+      `SELECT id, user_id FROM password_reset_tokens
+       WHERE token_hash=? AND used_at IS NULL AND expires_at > CURRENT_TIMESTAMP
+       FOR UPDATE`,
+      [tokenHash]
+    );
+    if (!tokens.length) return null;
 
-  res.json({ message: 'Password reset successfully. You can now log in.' });
+    const [users] = await query(
+      `UPDATE users SET password=?, token_version=token_version+1, must_change_password=false
+       WHERE id=? RETURNING id, name, email`,
+      [hash, tokens[0].user_id]
+    );
+    if (!users.length) return null;
+
+    await query('UPDATE password_reset_tokens SET used_at=CURRENT_TIMESTAMP WHERE id=?', [tokens[0].id]);
+    await query('DELETE FROM password_reset_tokens WHERE user_id=? AND id<>?', [tokens[0].user_id, tokens[0].id]);
+    return users[0];
+  });
+
+  if (!user) return res.status(400).json({ message: 'This reset link is invalid or has expired' });
+
+  emailService.passwordChanged({ to: user.email, name: user.name })
+    .catch(err => console.error('Password change confirmation email failed:', { code: err.code, responseCode: err.responseCode }));
+
+  res.json({ message: 'Your password has been reset successfully. You can now log in with your new password.' });
 };
 
 // ── TOTP 2FA setup (must be logged in) ───────────────────────────────────────

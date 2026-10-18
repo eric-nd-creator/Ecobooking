@@ -1,22 +1,23 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
-import toast from 'react-hot-toast';
 import { MailCheck, Trophy } from 'lucide-react';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [error, setError] = useState('');
 
   const handle = async e => {
     e.preventDefault();
+    setError('');
     setLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email });
+      await api.post('/auth/forgot-password', { email: email.trim() });
       setSent(true);
-    } catch {
-      toast.error('Something went wrong. Please try again.');
+    } catch (err) {
+      setError(err.response?.data?.message || 'We could not process your request. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -40,18 +41,19 @@ const ForgotPassword = () => {
           <div className="card text-center space-y-3 animate-fade-in">
             <MailCheck className="w-12 h-12 text-green-500 mx-auto" strokeWidth={1.5} />
             <p className="text-gray-700 dark:text-gray-200 font-semibold">Check your email</p>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              If an account exists for <strong>{email}</strong>, a reset link is on its way. The link expires in 30 minutes.
+            <p className="text-sm text-gray-500 dark:text-gray-400" role="status" aria-live="polite">
+              If an account with that email exists, you will receive a password reset link shortly. The link expires in 30 minutes.
             </p>
             <Link to="/login" className="btn-outline w-full inline-block text-center mt-2">Back to login</Link>
           </div>
         ) : (
           <form onSubmit={handle} className="card space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
-              <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
+              <label htmlFor="reset-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Email Address</label>
+              <input id="reset-email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)}
                 className="input" placeholder="you@example.com"/>
             </div>
+            {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
             <button type="submit" disabled={loading} className="btn-primary w-full py-3">
               {loading ? 'Sending...' : 'Send Reset Link'}
             </button>

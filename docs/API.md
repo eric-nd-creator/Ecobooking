@@ -12,6 +12,8 @@ Base URL: `http://localhost:5000/api` (hardcoded in the frontend's `axios.js`).
 |---|---|---|---|
 | POST | `/register` | none | Create a member/coach/ballboy account. Sends a welcome email (non-blocking). Returns `{token, user}`. |
 | POST | `/login` | none | Verify email/password. Returns `{token, user}`. |
+| POST | `/forgot-password` | none | Body `{email}`. Rate-limited; returns a generic response and emails a 30-minute reset link for matching accounts using configured SMTP. |
+| POST | `/reset-password` | none | Body `{token, new_password}`. Rate-limited; consumes a single-use reset link and updates the password. |
 | GET | `/me` | required | Current user's profile. |
 | PUT | `/profile` | required | Update `name`/`phone`; returns a freshly-signed token. |
 | PUT | `/password` | required | Change password (verifies current password first, min 6 chars for the new one). |

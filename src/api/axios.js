@@ -13,6 +13,7 @@ api.interceptors.response.use(
   r => r,
   err => {
     const status = err.response?.status;
+    const isPasswordRecovery = /\/auth\/(forgot-password|reset-password)/.test(err.config?.url || '');
 
     if (status === 401) {
       const wasLoggedIn = !!localStorage.getItem('token');
@@ -24,7 +25,7 @@ api.interceptors.response.use(
       }
     } else if (status === 403) {
       toast.error(err.response?.data?.message || "You don't have permission to do that.");
-    } else if (status >= 500) {
+    } else if (status >= 500 && !isPasswordRecovery) {
       toast.error('Something went wrong on our end. Please try again.');
     } else if (!err.response) {
       toast.error('Cannot reach the server. Check your connection and try again.');

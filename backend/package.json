@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node scripts/setupDatabase.js && node src/server.js",
     "dev": "node --watch src/server.js",
+    "test": "node --test",
     "momo:provision": "node scripts/momoProvision.js"
   },
   "dependencies": {

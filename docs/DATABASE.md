@@ -9,6 +9,7 @@ PostgreSQL. There is no single `schema.sql` in this repo — the live schema is 
 | `001_guest_bookings.sql` | Makes `bookings.user_id` and `payments.user_id` nullable (guest checkout); adds `bookings.guest_name`, `bookings.guest_phone`; adds `'guest'` to the `booked_by_role` enum; adds `payments.booking_id` |
 | `002_partner_notifications.sql` | Adds `bookings.with_partner` (boolean); creates the `notifications` table |
 | `003_predictions.sql` | Creates `prediction_models` and `prediction_forecasts` tables + an index |
+| `008_password_reset_tokens.sql` | Creates the hashed, expiring, single-use `password_reset_tokens` table |
 
 ## Enum types
 
@@ -35,6 +36,16 @@ PostgreSQL. There is no single `schema.sql` in this repo — the live schema is 
 | `phone` | varchar(20) | |
 | `avatar` | varchar(255) | |
 | `created_at` | timestamp | default now |
+
+### `password_reset_tokens`
+| Column | Type | Notes |
+|---|---|---|
+| `id` | serial | PK |
+| `user_id` | integer | FK to `users(id)` with cascade delete |
+| `token_hash` | char(64) | unique SHA-256 digest; raw token is sent only by email |
+| `expires_at` | timestamptz | 30 minutes after issuance |
+| `used_at` | timestamptz | null until successful reset |
+| `created_at` | timestamptz | default now |
 
 ### `courts`
 | Column | Type | Notes |

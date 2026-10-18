@@ -102,6 +102,10 @@ Set in `backend/.env`:
 
 The frontend uses `/api` by default, which works for Render's single-origin deployment. To point it at a separate API host, set `VITE_API_URL` during the frontend build.
 
+## Password reset email
+
+Configure `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`, and `FRONTEND_URL` in `backend/.env` (see `backend/.env.example`). Use an HTTPS frontend URL in production. Apply `backend/migrations/008_password_reset_tokens.sql` to the existing PostgreSQL database. Reset links expire after 30 minutes and can be used once. Run backend tests with `cd backend && npm test`.
+
 ## First administrator login
 
 On a fresh database, `database/schema.sql` seeds `ericnd8@gmail.com` with the initial password `123456e`. Change it after the first login.
