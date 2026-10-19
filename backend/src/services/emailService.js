@@ -11,6 +11,7 @@ function passwordResetUnavailableReason() {
   if (!process.env.FRONTEND_URL) return 'FRONTEND_URL is missing';
   try {
     const url = new URL(process.env.FRONTEND_URL);
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return 'FRONTEND_URL must be an HTTP(S) URL without credentials';
     if (process.env.NODE_ENV === 'production' && url.protocol !== 'https:') return 'FRONTEND_URL must use HTTPS in production';
   } catch {
     return 'FRONTEND_URL is invalid';
@@ -128,7 +129,7 @@ const emailService = {
     const safeResetUrl = escapeHtml(resetUrl);
     await sendMail({
       to,
-      subject: 'Reset Your EcoBooking Password',
+      subject: 'Reset Your TennisCourt Password',
       html: wrapper('Reset Your Password', '#1a5276', `
         <p style="color:#374151">Hi <strong>${recipientName}</strong>,</p>
         <p style="color:#374151">We received a request to reset your TennisCourt password. Use the button below to choose a new password. This link expires in 30 minutes and can only be used once.</p>

@@ -11,10 +11,13 @@ const ForgotPassword = () => {
 
   const handle = async e => {
     e.preventDefault();
+    if (loading) return;
     setError('');
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail || !e.currentTarget.reportValidity()) return;
     setLoading(true);
     try {
-      await api.post('/auth/forgot-password', { email: email.trim() });
+      await api.post('/auth/forgot-password', { email: normalizedEmail });
       setSent(true);
     } catch (err) {
       setError(err.response?.data?.message || 'We could not process your request. Please try again later.');
@@ -54,7 +57,7 @@ const ForgotPassword = () => {
                 className="input" placeholder="you@example.com"/>
             </div>
             {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
-            <button type="submit" disabled={loading} className="btn-primary w-full py-3">
+            <button type="submit" disabled={loading || !email.trim()} className="btn-primary w-full py-3">
               {loading ? 'Sending...' : 'Send Reset Link'}
             </button>
             <p className="text-center text-sm text-gray-500 dark:text-gray-400">
