@@ -32,7 +32,7 @@ const ImageSlider = () => {
   const slide = SLIDES[idx];
 
   return (
-    <div className={`relative w-full min-h-[400px] h-[min(72vh,560px)] bg-gradient-to-br ${slide.bg} transition-all duration-1000 overflow-hidden`}>
+    <div className={`relative w-full min-h-[400px] h-[min(72vh,560px)] max-[639px]:min-h-[440px] max-[639px]:h-auto bg-gradient-to-br ${slide.bg} transition-all duration-1000 overflow-hidden`}>
       {/* Tennis court SVG background pattern */}
       <div className="absolute inset-0 opacity-10">
         <svg className="w-full h-full" viewBox="0 0 800 560" fill="none">
@@ -49,23 +49,23 @@ const ImageSlider = () => {
       <div className="absolute top-20 right-20 w-24 h-24 rounded-full bg-yellow-400 opacity-20 animate-bounce"/>
       <div className="absolute bottom-32 left-16 w-16 h-16 rounded-full bg-white opacity-15"/>
 
-      <div className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white px-4">
-        <span className="bg-white/20 backdrop-blur-sm text-white text-sm font-semibold px-4 py-1.5 rounded-full mb-6">
+      <div className="relative z-10 flex flex-col items-center justify-center min-h-full h-full text-center text-white px-4 py-12 sm:px-6">
+        <span className="bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-semibold px-4 py-1.5 rounded-full mb-5 sm:mb-6">
           {slide.badge}
         </span>
         <h1 className="max-w-4xl text-4xl md:text-6xl font-bold mb-4 drop-shadow-lg">{slide.title}</h1>
-        <p className="text-xl md:text-2xl text-white/90 max-w-2xl mb-8">{slide.subtitle}</p>
-        <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
-          <a href="/booking" className="bg-white text-brand-700 font-semibold px-8 py-3 rounded-xl hover:bg-gray-100 transition-all shadow-lg">
+        <p className="text-base sm:text-xl md:text-2xl text-white/90 max-w-2xl mb-7 sm:mb-8">{slide.subtitle}</p>
+        <div className="flex w-full flex-col min-[420px]:w-auto min-[420px]:flex-row flex-wrap justify-center gap-3 sm:gap-4">
+          <a href="/booking" className="bg-white text-brand-700 font-semibold px-6 sm:px-8 py-3 rounded-xl hover:bg-gray-100 transition-all shadow-lg">
             Book Now
           </a>
-          <a href="/about" className="border-2 border-white text-white font-semibold px-8 py-3 rounded-xl hover:bg-white/20 transition-all">
+          <a href="/about" className="border-2 border-white text-white font-semibold px-6 sm:px-8 py-3 rounded-xl hover:bg-white/20 transition-all">
             Learn More
           </a>
         </div>
 
         {/* Dots */}
-        <div className="flex gap-2 mt-10">
+        <div className="flex gap-2 mt-7 sm:mt-10">
           {SLIDES.map((_, i) => (
             <button key={i} onClick={() => setIdx(i)}
               className={`w-3 h-3 rounded-full transition-all ${i === idx ? 'bg-white w-8' : 'bg-white/50'}`}/>
